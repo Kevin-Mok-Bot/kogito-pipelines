@@ -124,7 +124,7 @@ pipeline {
 
                     def buildParams = getDefaultBuildParams()
                     addSkipTestsParam(buildParams)
-                    addImageBuildParams(buildParams, '', env.TEMP_TAG, true, false)
+                    addImageBuildParams(env.TEMP_TAG, buildParams, '', true, false)
                     addStringParam(buildParams, 'EXAMPLES_URI', "https://github.com/${getGitAuthor()}/kogito-examples")
                     addStringParam(buildParams, 'EXAMPLES_REF', getBuildBranch())
 
@@ -150,7 +150,7 @@ pipeline {
                     echo "Call ${OPERATOR_DEPLOY} job"
                     def buildParams = getDefaultBuildParams()
                     addSkipTestsParam(buildParams)
-                    addImageBuildParams(buildParams, '', env.TEMP_TAG, true, false)
+                    addImageBuildParams(env.TEMP_TAG, buildParams, '', true, false)
 
                     // For BDD tests
                     addBooleanParam(buildParams, 'KOGITO_IMAGES_IN_OPENSHIFT_REGISTRY', params.USE_TEMP_OPENSHIFT_REGISTRY)
@@ -183,8 +183,8 @@ pipeline {
                     echo "Call ${IMAGES_PROMOTE} job"
 
                     def buildParams = getDefaultBuildParams()
-                    addImageBuildParams(buildParams, 'BASE', env.TEMP_TAG, true, false)
-                    addImageBuildParams(buildParams, 'PROMOTE', env.NIGHTLY_TAG, true, true)
+                    addImageBuildParams(env.TEMP_TAG, buildParams, 'BASE', true, false)
+                    addImageBuildParams(env.NIGHTLY_TAG, buildParams, 'PROMOTE', true, true)
                     if(getBuildBranch() == env.BRANCH_FOR_LATEST){
                         addBooleanParam(buildParams, 'DEPLOY_WITH_LATEST_TAG', true)
                     }
@@ -211,8 +211,8 @@ pipeline {
                     echo "Call ${OPERATOR_PROMOTE} job"
 
                     def buildParams = getDefaultBuildParams()
-                    addImageBuildParams(buildParams, 'BASE', env.TEMP_TAG, true, false)
-                    addImageBuildParams(buildParams, 'PROMOTE', env.NIGHTLY_TAG, true, true)
+                    addImageBuildParams(env.TEMP_TAG, buildParams, 'BASE', true, false)
+                    addImageBuildParams(env.NIGHTLY_TAG, buildParams, 'PROMOTE', true, true)
                     if(getBuildBranch() == env.BRANCH_FOR_LATEST){
                         addBooleanParam(buildParams, 'DEPLOY_WITH_LATEST_TAG', true)
                     }
@@ -286,7 +286,6 @@ List getDefaultBuildParams(){
     addStringParam(params, 'DISPLAY_NAME', env.NIGHTLY_TAG)
     addStringParam(params, 'BUILD_BRANCH_NAME', getBuildBranch())
     addStringParam(params, 'GIT_AUTHOR', getGitAuthor())
-
     return params
 }
 
@@ -294,7 +293,7 @@ void addSkipTestsParam(buildParams){
     addBooleanParam(buildParams, 'SKIP_TESTS', params.SKIP_TESTS)
 }
 
-void addImageBuildParams(List buildParams = [], String paramsPrefix = '', String tag, boolean isRegistryIncluded = false, boolean isFinalImage = false){
+void addImageBuildParams(String tag, List buildParams = [], String paramsPrefix = '', boolean isRegistryIncluded = false, boolean isFinalImage = false){
     if (!isFinalImage && params.USE_TEMP_OPENSHIFT_REGISTRY) {
         addBooleanParam(buildParams, constructKey(paramsPrefix, 'IMAGE_USE_OPENSHIFT_REGISTRY'), true)
     } else if(isRegistryIncluded) {
